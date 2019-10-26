@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
+int invalid_sudoku = 0;
+
+// TODO: put sudX into sudokus.h file
 
 int sud1[9][9] = {
 	{ 8, 5, 0, 0, 0, 0, 0, 2, 7 },
@@ -39,13 +42,25 @@ int sud3[9][9] = {
 	{ 0, 0, 3, 0, 0, 2, 5, 0, 0 }
 };
 
+int sud4[9][9] = {
+	{ 1, 0, 0, 5, 7, 0, 3, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 5, 7, 0 },
+	{ 6, 0, 0, 0, 9, 0, 0, 0, 8 },
+	{ 0, 0, 0, 0, 0, 0, 0, 4, 1 },
+	{ 0, 0, 0, 6, 0, 3, 0, 0, 0 },
+	{ 7, 2, 8, 0, 0, 0, 0, 0, 0 },
+	{ 0, 9, 0, 2, 0, 6, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 1, 2, 0, 3 },
+	{ 3, 5, 2, 0, 0, 0, 9, 0, 0 }
+};
+
 int  check(int in[9][9]);
 void solve(int in[9][9]);
 void print(int in[9][9]);
 
 int main() {
 	int in[9][9];
-	memcpy(in, sud3, sizeof(int) * 81);
+	memcpy(in, sud4, sizeof(int) * 81);
 	if (check(in) == 1) {
 		solve(in);
 		print(in);
@@ -148,13 +163,24 @@ void solve(int in[9][9]) {
 //           puts("halt");
 //         }
         search_space_wise(in, current, index);
+        if (invalid_sudoku == 1) {
+          invalid_sudoku = 0;
+          return;
+        }
         search_row_wise(in, current, index);
+        if (invalid_sudoku == 1) {
+          invalid_sudoku = 0;
+          return;
+        }
         search_col_wise(in, current, index);
+        if (invalid_sudoku == 1) {
+          invalid_sudoku = 0;
+          return;
+        }
       }
     }
-    // print(in);
     if (memcmp(in, previous, sizeof(int) * 81) == 0) {
-      printf("Number of iterations: %d\n", count);
+      guessing(in);
       break;
     }
   }
@@ -187,6 +213,8 @@ void search_space_wise(int in[9][9], int num, int index) {
   }
   if (suitable_row != -1 && suitable_col != -1) {
     in[suitable_row][suitable_col] = num;
+  } else {
+    invalid_sudoku = 1;
   }
 }
 
@@ -214,6 +242,8 @@ void search_row_wise (int in[9][9], int num, int index) {
   }
   if (suitable_row != -1 && suitable_col != -1) {
     in[suitable_row][suitable_col] = num;
+  } else {
+    invalid_sudoku = 1;
   }
 }
 
@@ -240,5 +270,46 @@ void search_col_wise  (int in[9][9], int num, int index) {
   }
   if (suitable_row != -1 && suitable_col != -1) {
     in[suitable_row][suitable_col] = num;
+  } else {
+    invalid_sudoku = 1;
   }
 }
+
+void guessing(int in[9][9]) {
+  // TODO: how can the program go back to a previous guessing?
+  int guessing_row = -1;
+  int guessing_col = -1;
+  int guessings[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  for (int row = 0; row < 9; row++) {
+    for (int col = 0; col < 9; col++) {
+      if (is_free(in, row, col)) {
+        for (int current = 1; current <= 9; current++) {
+          if (is_suitable(in, row, col, current)) {
+            guessing_row = row;
+            guessing_col = col;
+            guessings[current - 1] = 1;
+          }
+        }
+        if (guessing_row != -1 && guessing_col != -1) {
+          row = 1000;
+          col = 1000;
+        }
+      }
+    }
+  }
+  int temp[9][9];
+  for (int current = 1; current <= 9; current++) {
+    if (guessings[current - 1]) {
+      memcpy(temp, in, sizeof(int) * 81);
+      in[guessing_row][guessing_col] = current;
+      solve(in);
+      if (is_solved(in)) {
+        break;
+      } else {
+        memcpy(in, temp, sizeof(int) * 81);
+      }
+    }
+  }
+}
+
+
