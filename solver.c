@@ -1,58 +1,14 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "sudokus.h"
 
 int invalid_sudoku = 0;
+int comparison_sudoku[9][9];
 
-// TODO: put sudX into sudokus.h file
-
-int sud1[9][9] = {
-	{ 8, 5, 0, 0, 0, 0, 0, 2, 7 },
-	{ 9, 0, 0, 7, 0, 2, 0, 0, 6 },
-	{ 0, 0, 4, 0, 1, 0, 5, 0, 0 },
-	{ 1, 2, 0, 0, 0, 0, 0, 8, 9 },
-	{ 0, 0, 5, 0, 0, 0, 2, 0, 0 },
-	{ 4, 9, 0, 0, 0, 0, 0, 6, 5 },
-	{ 0, 0, 9, 0, 4, 0, 7, 0, 0 },
-	{ 7, 0, 0, 5, 0, 6, 0, 0, 2 },
-	{ 3, 8, 0, 0, 0, 0, 0, 5, 4 }
-};
-
-int sud2[9][9] = {
-	{ 0, 0, 7, 0, 9, 6, 0, 0, 0 },
-	{ 0, 3, 0, 0, 0, 0, 6, 8, 0 },
-	{ 0, 6, 0, 5, 3, 0, 0, 0, 1 },
-	{ 3, 0, 0, 0, 0, 0, 8, 0, 0 },
-	{ 5, 0, 8, 0, 1, 0, 9, 0, 6 },
-	{ 0, 0, 9, 0, 0, 0, 0, 0, 4 },
-	{ 8, 0, 0, 0, 6, 2, 0, 1, 0 },
-	{ 0, 5, 1, 0, 0, 0, 0, 6, 0 },
-	{ 0, 0, 0, 1, 5, 0, 7, 0, 0 }
-};
-
-int sud3[9][9] = {
-	{ 0, 0, 6, 5, 0, 0, 8, 0, 0 },
-	{ 4, 1, 7, 3, 0, 0, 0, 0, 0 },
-	{ 0, 0, 0, 0, 0, 4, 0, 0, 0 },
-	{ 7, 0, 8, 0, 0, 0, 0, 4, 0 },
-	{ 0, 6, 0, 2, 0, 5, 0, 9, 0 },
-	{ 0, 5, 0, 0, 0, 0, 1, 0, 6 },
-	{ 0, 0, 0, 7, 0, 0, 0, 0, 0 },
-	{ 0, 0, 0, 0, 0, 1, 2, 6, 3 },
-	{ 0, 0, 3, 0, 0, 2, 5, 0, 0 }
-};
-
-int sud4[9][9] = {
-	{ 1, 0, 0, 5, 7, 0, 3, 0, 0 },
-	{ 0, 0, 0, 0, 0, 0, 5, 7, 0 },
-	{ 6, 0, 0, 0, 9, 0, 0, 0, 8 },
-	{ 0, 0, 0, 0, 0, 0, 0, 4, 1 },
-	{ 0, 0, 0, 6, 0, 3, 0, 0, 0 },
-	{ 7, 2, 8, 0, 0, 0, 0, 0, 0 },
-	{ 0, 9, 0, 2, 0, 6, 0, 0, 0 },
-	{ 0, 0, 0, 0, 0, 1, 2, 0, 3 },
-	{ 3, 5, 2, 0, 0, 0, 9, 0, 0 }
-};
+int spaces[3][3] = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+int space_xs[9] = {0, 0, 0, 1, 1, 1, 2, 2, 2};
+int space_ys[9] = {0, 1, 2, 0, 1, 2, 0, 1, 2};
 
 int  check(int in[9][9]);
 void solve(int in[9][9]);
@@ -61,13 +17,9 @@ void print(int in[9][9]);
 int main() {
 	int in[9][9];
 	memcpy(in, sud4, sizeof(int) * 81);
-	if (check(in) == 1) {
-		solve(in);
-		print(in);
-	}
-	else {
-		puts("Erroneous sudoku.");
-	}
+	memcpy(comparison_sudoku, in, sizeof(int) * 81);
+	solve(in);
+	print(in);
   return 0;
 }
 
@@ -75,21 +27,53 @@ int check(int in [9][9]) {
   return 1;
 }
 
-
-void print(int in[9][9]) {
-  for (int row = 0; row < 9; row++) {
-    char row_output[9];
-    for (int col = 0; col < 9; col++) {
-      row_output[col] = in[row][col] + '0';
-    }
-    puts(row_output);
-  }
-  puts("\n");
+void white() {
+  printf("\033[0m");
 }
 
-int spaces[3][3] = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
-int space_xs[9] = {0, 0, 0, 1, 1, 1, 2, 2, 2};
-int space_ys[9] = {0, 1, 2, 0, 1, 2, 0, 1, 2};
+void red() {
+  printf("\033[1;31m");
+}
+
+void blue() {
+  printf("\033[0;34m");
+}
+
+void print_num(int in[9][9], int row, int col) {
+  int num = in[row][col];
+  if (num == comparison_sudoku[row][col]) {
+    blue();
+  } else {
+    red();
+  }
+  if (num == 0) {
+    printf(" ");
+  } else {
+    printf("%d", num);
+  }
+}
+
+void print(int in[9][9]) {
+  for (int section_row = 0; section_row < 3; section_row++) {
+    white();
+    puts(" +-------+-------+-------+");
+    for (int space_row = 0; space_row < 3; space_row++) {
+      int row = 3 * section_row + space_row;
+      for (int section_col = 0; section_col < 3; section_col++) {
+        white();
+        printf(" | ");
+        print_num(in, row, section_col * 3);
+        printf(" ");
+        print_num(in, row, section_col * 3 + 1);
+        printf(" ");
+        print_num(in, row, section_col * 3 + 2);
+      }
+      white();
+      printf(" |\n");
+    }
+  }
+  puts(" +-------+-------+-------+\n");
+}
 
 int is_free(int in[9][9], int row, int col) {
   return in[row][col] == 0;
