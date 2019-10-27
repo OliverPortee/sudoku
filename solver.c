@@ -13,10 +13,12 @@ int space_ys[9] = {0, 1, 2, 0, 1, 2, 0, 1, 2};
 int  check(int in[9][9]);
 void solve(int in[9][9]);
 void print(int in[9][9]);
+void read_sudoku(int in[9][9]);
 
 int main() {
 	int in[9][9];
-	memcpy(in, sud4, sizeof(int) * 81);
+  read_sudoku(in);
+  // memcpy(in, sud, sizeof(int) * 81);
 	memcpy(comparison_sudoku, in, sizeof(int) * 81);
 	solve(in);
 	print(in);
@@ -41,13 +43,15 @@ void blue() {
 
 void print_num(int in[9][9], int row, int col) {
   int num = in[row][col];
-  if (num == comparison_sudoku[row][col]) {
+  if (comparison_sudoku != NULL && num == comparison_sudoku[row][col]) {
     blue();
   } else {
     red();
   }
   if (num == 0) {
     printf(" ");
+  } else if (num == -1) {
+    printf("?");
   } else {
     printf("%d", num);
   }
@@ -73,6 +77,26 @@ void print(int in[9][9]) {
     }
   }
   puts(" +-------+-------+-------+\n");
+}
+
+void read_sudoku(int in[9][9]) {
+  for (int row = 0; row < 9; row++) {
+    for (int col = 0; col < 9; col++) {
+      in[row][col] = 0;
+    }
+  }
+  for (int row = 0; row < 9; row++) {
+    for (int col = 0; col < 9; col++) {
+      in[row][col] = -1;
+      print(in);
+      int num;
+      do {
+        printf("\nNumber (0 for a free field): ");
+        scanf("%d", &num);
+      } while (0 > num || num > 9);
+      in[row][col] = num;
+    }
+  }
 }
 
 int is_free(int in[9][9], int row, int col) {
@@ -143,9 +167,6 @@ void solve(int in[9][9]) {
     count++;
     for (int current = 1; current <= 9; current++) {
       for (int index = 0; index < 9; index++) {
-//         if (count > 100 && current == 2 && index == 0) {
-//           puts("halt");
-//         }
         search_space_wise(in, current, index);
         if (invalid_sudoku == 1) {
           invalid_sudoku = 0;
@@ -260,7 +281,6 @@ void search_col_wise  (int in[9][9], int num, int index) {
 }
 
 void guessing(int in[9][9]) {
-  // TODO: how can the program go back to a previous guessing?
   int guessing_row = -1;
   int guessing_col = -1;
   int guessings[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
